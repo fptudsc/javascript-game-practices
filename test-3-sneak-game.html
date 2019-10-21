@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<canvas width="400" height="400"></canvas>
+	<label for="mod-a">
+	  <input type="radio" class="mod" name="mod" id="mod-a" checked data-mod="a">
+	  ModA
+	</label>
+	<label for="mod-b">
+	  <input type="radio" class="mod" name="mod" id="mod-b" data-mod="b">
+	  ModB
+	</label>
+</body>
+<script>
+	const canvas = document.querySelector('canvas');
+	const ctx = canvas.getContext('2d');
+	const modA = document.querySelector('#mod-a');
+
+	setInterval(renderGame, 100);
+	window.addEventListener('keydown', updateVelocity);
+	document.querySelectorAll('.mod').forEach(m => m.addEventListener('click', changeMode));
+
+	let player = { x: 10, y: 10 };
+	let apple = { x: 8, y: 8 };
+	let velocity = { x: 0, y: 0};
+	let gs = 20;
+	let tc = 20;
+	let trail = [{ x: 10, y: 10 }];
+	let tail = 1;
+	let mode = 'a';
+
+	function resetGame() {
+	  player = { x: 10, y: 10 };
+	  apple = { x: 8, y: 8 };
+	  velocity = { x: 0, y: 0};
+	  gs = 20;
+	  tc = 20;
+	  trail = [{ x: 10, y: 10}];
+	  tail = 1;
+	}
+
+	function renderGame() {
+	  ctx.fillStyle = '#222';
+	  ctx.fillRect(0, 0, gs * tc, gs * tc);
+	  
+	  player.x += velocity.x;
+	  player.y += velocity.y;
+	  
+	  ctx.fillStyle = 'blue';
+	  for (var i = 0; i < trail.length; i++) {
+	    ctx.fillRect(trail[i].x * gs, trail[i].y * gs, gs, gs);
+	    if (player.x === trail[i].x && player.y === trail[i].y) {
+	      resetGame();
+	    }
+	  }
+	  
+	  checkRules();
+	  
+	  trail.unshift({ x: player.x, y: player.y });
+	  while (trail.length > tail) {
+	    trail.pop();
+	  }
+	  if (player.x === apple.x && player.y === apple.y) {
+	    tail++;
+	    getNewApple();
+	  }
+	  ctx.fillStyle = 'red';
+	  ctx.fillRect(apple.x * gs, apple.y * gs, gs, gs);
+	}
+
+	function renderWall() {
+		ctx.fillStyle = '#663c00';
+		ctx.fillRect(0, 0, tc*gs, 1*gs);
+	  ctx.fillRect((tc - 1)*gs, 0, tc*gs, tc*gs);
+	  ctx.fillRect(0, (tc - 1)*gs, tc*gs, tc*gs);
+	  ctx.fillRect(0, 0, 1*gs, (tc - 1)*gs);  
+	}
+
+	function checkRules() {
+		switch (mode) {
+	  	case 'a':
+	    	renderWall();
+	      
+	      if (player.x < 1 || player.x > (tc - 2) || player.y < 1 || player.y > (tc - 2)) {
+	      	console.log('End', player);
+	      	resetGame();
+				}
+	    	break;
+	    case 'b':
+	      if (player.x < 0)
+	        player.x = tc - 1;
+	      if (player.x > tc - 1)
+	        player.x = 0;
+	      if (player.y < 0)
+	        player.y = tc - 1;
+	      if (player.y > tc - 1)
+	        player.y = 0;
+	    	break;
+	  }
+	}
+
+	function getNewApple() {
+	  switch (mode) {
+	    case 'a':
+	      apple.x = Math.floor(Math.random() * (tc - 2) + 1);
+	      apple.y = Math.floor(Math.random() * (tc - 2) + 1);
+	      break;
+	    case 'b':
+	      apple.x = Math.floor(Math.random() * tc);
+	      apple.y = Math.floor(Math.random() * tc);
+	      break;
+	  }
+	}
+
+	function changeMode() {
+	  mode = this.dataset.mod;
+		resetGame();
+	}
+
+	function updateVelocity(e) {
+		e.preventDefault();
+	  switch (e.keyCode) {
+	    case 37:
+	      if (velocity.x == 1)
+	        break;
+	      velocity.x = -1;
+	      velocity.y = 0;
+	      break;
+	    case 38:
+	      if (velocity.y == 1)
+	        break;
+	      velocity.x = 0;
+	      velocity.y = -1;
+	      break;
+	    case 39:
+	      if (velocity.x == -1)
+	        break;
+	      velocity.x = 1;
+	      velocity.y = 0;
+	      break;
+	    case 40:
+	      if (velocity.y == -1)
+	        break;
+	      velocity.x = 0;
+	      velocity.y = 1;
+	      break;
+	  }
+	}
+</script>
+</html>
